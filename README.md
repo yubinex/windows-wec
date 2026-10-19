@@ -80,10 +80,8 @@ makes only bounded HTTPS requests to that site.
 Flag images in `wec_tray/flags/` are from [Twemoji](https://github.com/jdecked/twemoji)
 (© Twitter, Inc. and other contributors), licensed under
 [CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/). Windows has no emoji
-flag glyphs, so the app ships them as images, one per country on the current
-calendar. If the calendar adds a country, the window shows its two-letter code
-until a flag is added: save the Twemoji PNG as `wec_tray/flags/<ISO code>.png`
-(for example `MX.png`) and publish a new release.
+flag glyphs, so the app ships them as images: every country flag Twemoji has
+(258, about 140 KB), so venues added in future seasons show their flag too.
 
 ## Trademark notice
 

@@ -8,6 +8,7 @@ with real saved pages in tests/fixtures/ to validate against the live site.
 import json
 import unittest
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 
 from wec_tray import core
 
@@ -157,6 +158,12 @@ class StateTests(unittest.TestCase):
         self.assertEqual(core.parse_venue(weekend_html(["EventScheduled"] * 3)),
                          ("Circuit", "Barcelona, Spain"))
         self.assertEqual(core.parse_venue("<html></html>"), ("", ""))
+
+    def test_every_country_has_a_flag(self):
+        flags = {p.stem for p in (Path(core.__file__).parent / "flags").glob("*.png")}
+        # All ISO 3166-1 countries are bundled, so new calendar venues need no change.
+        self.assertGreaterEqual(len(flags), 249)
+        self.assertLessEqual({c for _, _, c in core.FALLBACK_RACES}, flags)
 
     def test_fetch_rejects_non_https(self):
         self.assertIsNone(core.fetch("http://www.fiawec.com/en/"))
