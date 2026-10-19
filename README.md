@@ -7,6 +7,18 @@ The tray icon is a countdown badge: `18d` until the next session, `5h` on the
 day, an amber `45m` when it is close, and a red `LIVE` while a session is on.
 Click it to open the WEC window.
 
+## Download
+
+Get `WindowsWEC.exe` from the [latest release](https://github.com/yubinex/windows-wec/releases/latest)
+and run it. There is nothing to install and no Python needed (Windows 10/11, 64-bit).
+
+- The .exe is not code-signed yet, so Windows SmartScreen may say "Windows
+  protected your PC". Click **More info → Run anyway**.
+- On Windows 11, new tray icons start in the overflow menu (`^`). Drag the
+  icon onto the taskbar to keep the countdown visible.
+- Each release lists the file's SHA-256. To check your download, run
+  `Get-FileHash WindowsWEC.exe` in PowerShell and compare.
+
 ## The WEC window
 
 A small dark window above the notification area, modelled on the omarchy-wec panel:
@@ -25,19 +37,21 @@ The calendar refreshes hourly. The weekend timetable refreshes hourly, and every
 5 minutes from two hours before the next session. The last data is cached in
 `%LOCALAPPDATA%\windows-wec`, so the app starts offline.
 
-## Give it to someone
-
-```powershell
-powershell -ExecutionPolicy Bypass -File build.ps1
-```
-
-This builds `dist\WindowsWEC.exe`, one file with no Python needed. Send that file.
 On first launch it opens the window. With "Start with Windows" on, it starts
 quietly in the tray (`--background`). Running it again while it is already
 open does nothing.
 
-Unsigned .exe files get a SmartScreen warning ("More info" → "Run anyway").
-Only code signing removes that.
+## Releasing
+
+Push a version tag and GitHub Actions builds the .exe and publishes the release:
+
+```powershell
+git tag v0.2.0
+git push origin v0.2.0
+```
+
+To build locally instead, run `powershell -ExecutionPolicy Bypass -File build.ps1`,
+which produces `dist\WindowsWEC.exe`.
 
 ## Run from source
 

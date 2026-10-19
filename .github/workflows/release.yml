@@ -1,0 +1,58 @@
+# Tests every push and pull request. Pushing a tag like v0.2.0 also builds
+# WindowsWEC.exe and publishes it, with its SHA-256, as a GitHub Release.
+name: CI
+
+on:
+  push:
+    branches: [master]
+    tags: ["v*"]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: python -m pip install -r requirements.txt
+      - run: python -m unittest discover -s tests
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: test
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Build WindowsWEC.exe
+        shell: pwsh
+        run: ./build.ps1
+      - name: Checksum
+        shell: pwsh
+        run: |
+          $hash = (Get-FileHash dist\WindowsWEC.exe -Algorithm SHA256).Hash.ToLower()
+          "$hash  WindowsWEC.exe" | Set-Content -NoNewline dist\WindowsWEC.exe.sha256
+          "SHA256=$hash" >> $env:GITHUB_ENV
+      - name: Publish release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $notes = @"
+          **Download ``WindowsWEC.exe`` below and run it.** No install or Python needed (Windows 10/11, 64-bit).
+
+          The .exe is not code-signed yet, so Windows SmartScreen may warn: click **More info → Run anyway**.
+
+          SHA-256: ``$env:SHA256``
+          "@
+          gh release create "$env:GITHUB_REF_NAME" dist/WindowsWEC.exe dist/WindowsWEC.exe.sha256 `
+            --title "Windows WEC $env:GITHUB_REF_NAME" --notes $notes --generate-notes
