@@ -96,6 +96,7 @@ class DetailWindow:
         self._tick_job: str | None = None
         self._placed = False
         self._flags: dict[tuple[str, int], ImageTk.PhotoImage | None] = {}
+        self._last_key: tuple | None = None
 
         families = set(tkfont.families(root))
         family = next((f for f in ("Cascadia Mono", "Consolas") if f in families), "Courier New")
@@ -247,13 +248,24 @@ class DetailWindow:
     # --------------------------------------------------------------- render
 
     def render(self) -> None:
-        for child in self.body.winfo_children():
-            child.destroy()
+        races, updated = self.app.snapshot()
+        now = datetime.now(timezone.utc)
+        # Everything the view depends on. Countdowns change at most once a minute,
+        # so ticks and data refreshes that change nothing visible are skipped.
+        key = (now.strftime("%Y%m%d%H%M"), repr(races), updated, self.tab,
+               sorted(self.expanded.items()), sorted(self.app.settings.items()),
+               self.app.startup_enabled() if self.tab == "settings" else None)
+        if key == self._last_key and self.body.winfo_ismapped():
+            return
+        self._last_key = key
+
+        # Build into a fresh frame and swap it in within the same event, so the
+        # window never shows a half-built or empty state (no flicker).
+        old = self.body
+        self.body = tk.Frame(self.win, bg=BG, padx=self.px(20), pady=self.px(18))
         # Fixes the window width; labels are short enough not to need eliding.
         tk.Frame(self.body, bg=BG, width=self.px(WIDTH), height=0).pack()
 
-        races, _updated = self.app.snapshot()
-        now = datetime.now(timezone.utc)
         race = core.next_race(races, now)
 
         self._render_header(races, race, now)
@@ -270,6 +282,8 @@ class DetailWindow:
             self._render_settings()
         else:
             self._render_weekend(races, race, now)
+        old.destroy()
+        self.body.pack(fill="both", expand=True)
         self._keep_on_screen()
 
     def _render_header(self, races: list[core.Race], race: core.Race | None,
