@@ -1,3 +1,3 @@
 """Unofficial FIA WEC system tray countdown."""
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
