@@ -16,6 +16,7 @@ from typing import Optional
 BASE_URL = "https://www.fiawec.com"
 CALENDAR_URL = BASE_URL + "/en/"
 RACE_URL = BASE_URL + "/en/race/"
+STANDINGS_URL = BASE_URL + "/en/page/manufacturers-classification"
 MAX_BYTES = 1024 * 1024  # same 1 MiB bound as the Omarchy plugin
 TIMEOUT_S = 15
 

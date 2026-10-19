@@ -16,7 +16,7 @@ from typing import TYPE_CHECKING, Callable
 
 from PIL import Image, ImageTk
 
-from . import core, standings
+from . import core
 from .icon import make_icon
 
 if TYPE_CHECKING:
@@ -92,7 +92,6 @@ class DetailWindow:
         self.root, self.app = root, app
         self.scale = root.winfo_fpixels("1i") / 96
         self.tab = "weekend"
-        self.standings_tab = standings.CATEGORIES[0][0]
         self.expanded: dict[str, bool] = {}
         self._tick_job: str | None = None
         self._placed = False
@@ -260,14 +259,14 @@ class DetailWindow:
         self._render_header(races, race, now)
         tabs = self.frame(self.body)
         tabs.pack(fill="x", pady=(self.px(14), self.px(12)))
-        for key, text in (("weekend", "RACE WEEKEND"), ("standings", "STANDINGS"),
-                          ("settings", "SETTINGS")):
+        for key, text in (("weekend", "RACE WEEKEND"), ("settings", "SETTINGS")):
             self.chip(tabs, text, self.tab == key, lambda k=key: self._set_tab(k)) \
                 .pack(side="left", padx=(0, self.px(8)))
+        # Standings are not scraped; the official tables are one click away.
+        self.chip(tabs, "STANDINGS ↗", command=lambda: webbrowser.open(core.STANDINGS_URL)) \
+            .pack(side="right")
 
-        if self.tab == "standings":
-            self._render_standings()
-        elif self.tab == "settings":
+        if self.tab == "settings":
             self._render_settings()
         else:
             self._render_weekend(races, race, now)
@@ -411,46 +410,6 @@ class DetailWindow:
         if status and not done:
             color = RED if live else AMBER if soon else DIM
             self.label(row, status, "caption", color).pack(side="right")
-
-    def _render_standings(self) -> None:
-        chips = self.frame(self.body)
-        chips.pack(fill="x", pady=(0, self.px(10)))
-        titles = {}
-        for key, chip_text, title in standings.CATEGORIES:
-            titles[key] = title
-            self.chip(chips, chip_text, self.standings_tab == key,
-                      lambda k=key: self._set_standings(k)).pack(side="left", padx=(0, self.px(6)))
-        self.label(self.body, titles[self.standings_tab], "title").pack(anchor="w")
-        self.label(self.body, standings.SEASON, "small", DIM).pack(anchor="w")
-        self.separator(10)
-
-        rows = standings.STANDINGS[self.standings_tab]
-        leader = rows[0][3] if rows else 0
-        for pos, name, detail, points in rows:
-            row = self.frame(self.body)
-            row.pack(fill="x", pady=self.px(3))
-            self.label(row, f"P{pos}", fg=DIM, width=4, anchor="w").pack(side="left", anchor="n")
-            pts = self.frame(row)
-            pts.pack(side="right", anchor="n")
-            self.label(pts, f"{points} pts", "bold", anchor="e").pack(anchor="e")
-            if pos > 1:
-                self.label(pts, f"−{leader - points} pts", "caption", DIM).pack(anchor="e")
-            col = self.frame(row)
-            col.pack(side="left", fill="x", expand=True, anchor="n")
-            self.label(col, name, "bold" if pos == 1 else "body", anchor="w").pack(anchor="w")
-            if detail:
-                self.label(col, detail, "small", DIM, anchor="w").pack(anchor="w")
-
-        self.separator(10)
-        foot = self.frame(self.body)
-        foot.pack(fill="x")
-        self.label(foot, f"Snapshot from {standings.SNAPSHOT_DATE} · not live", "small",
-                   DIM).pack(side="left")
-        self.link(foot, "OPEN FIA WEC ↗", standings.SOURCE_URL).pack(side="right")
-
-    def _set_standings(self, key: str) -> None:
-        self.standings_tab = key
-        self.render()
 
     def _render_settings(self) -> None:
         def toggle_row(title: str, desc: str, on: bool, command: Callable[[], None]) -> None:

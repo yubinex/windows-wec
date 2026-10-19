@@ -26,9 +26,8 @@ A small dark window above the notification area, modelled on the omarchy-wec pan
 - **Header:** next round, venue, round number, next session and race start, with a countdown
 - **Race weekend:** timetable grouped by day in your local time (the current day
   opens by default), with LIVE and soon markers, then the next three races
-- **Standings:** Hypercar and LMGT3 championship tables. These are a **snapshot
-  (4 Sep 2026)**, not live data, and the window labels them that way.
-- **Settings:** show/hide completed sessions, start with Windows, refresh, quit
+- **Settings:** race flags, completed sessions, start with Windows, refresh, quit
+- **Standings ↗:** opens the official championship tables on fiawec.com
 
 Closing the window keeps the app running in the tray. Right-click the icon for
 refresh, fiawec.com, start with Windows, and quit.
